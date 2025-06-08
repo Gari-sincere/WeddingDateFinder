@@ -1,5 +1,5 @@
 {
-  "homepage": "https://Gari-sincere.github.io/WeddingDateFinder",
+  "homepage": "https://gari-sincere.github.io/WeddingDateFinder",
   "name": "flex-template",
   "private": true,
   "version": "0.0.0",
@@ -11,7 +11,7 @@
     "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "build": "vite build"
+    "build": "npm run lint && vite build"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.80",
