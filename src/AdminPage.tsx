@@ -9,6 +9,7 @@ export function AdminPage() {
   const [activeTab, setActiveTab] = useState<"disable" | "availability">("availability");
   const disabledDates = useQuery(api.dates.getDisabledDates) || [];
   const unavailabilityStats = useQuery(api.dates.getUnavailabilityStats) || {};
+  const respondedGuests = useQuery(api.dates.getRespondedGuests) || [];
   const toggleDisabledDate = useMutation(api.dates.toggleDisabledDate);
 
   const handleDateToggle = async (date: string) => {
@@ -24,8 +25,21 @@ export function AdminPage() {
     }
   };
 
+  // Get guest selection mode by checking their responses
+  const getGuestSelectionMode = (firstName: string, lastName: string) => {
+    // Look for "available" entries first (guests in available mode have both types)
+    for (const dateStats of Object.values(unavailabilityStats)) {
+      const availableResponse = dateStats.guests.find(
+        g => g.firstName === firstName && g.lastName === lastName && g.selectionMode === "available"
+      );
+      if (availableResponse) {
+        return "available";
+      }
+    }
+    return "unavailable"; // Default fallback
+  };
+
   const months = [
-    { name: "August 2025", year: 2025, month: 7 },
     { name: "September 2025", year: 2025, month: 8 },
     { name: "October 2025", year: 2025, month: 9 },
     { name: "November 2025", year: 2025, month: 10 },
@@ -98,7 +112,50 @@ export function AdminPage() {
           </div>
         </div>
 
-        {/* Calendars */}
+        {/* Responses Section - Only show on availability tab */}
+          {activeTab === "availability" && (
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto mb-8">
+              <h2 className="text-2xl font-bold text-blue-800 mb-4">
+                📋 Guest Responses ({respondedGuests.length} responded)
+              </h2>
+              
+              {respondedGuests.length === 0 ? (
+                <p className="text-gray-600 italic">No responses yet</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {respondedGuests.map((guest, index) => {
+                    const selectionMode = getGuestSelectionMode(guest.firstName, guest.lastName);
+                    const isAvailableMode = selectionMode === "available";
+                    
+                    return (
+                      <div 
+                        key={index}
+                        className={`border rounded-lg p-3 text-left ${
+                          isAvailableMode 
+                            ? "bg-green-50 border-green-200" 
+                            : "bg-red-50 border-red-200"
+                        }`}
+                      >
+                        <div className={`font-medium ${
+                          isAvailableMode ? "text-green-800" : "text-red-800"
+                        }`}>
+                          {guest.firstName} {guest.lastName}
+                        </div>
+                        <div className={`text-sm ${
+                          isAvailableMode ? "text-green-600" : "text-red-600"
+                        }`}>
+                          {guest.responseCount} date{guest.responseCount !== 1 ? 's' : ''} selected
+                        </div>
+                        
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+				
+				{/* Calendars */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {activeTab === "availability" ? (
             months.map((monthData) => (

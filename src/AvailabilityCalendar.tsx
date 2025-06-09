@@ -4,6 +4,7 @@ import { GuestListModal } from "./GuestListModal";
 interface Guest {
   firstName: string;
   lastName: string;
+  selectionMode: "unavailable" | "available";
 }
 
 interface AvailabilityCalendarProps {
@@ -63,9 +64,28 @@ export function AvailabilityCalendar({
     const dateString = formatDate(year, month, day);
     const stats = unavailabilityStats[dateString];
     
-    if (stats && stats.count > 0) {
+    // Show modal if there are any guests (either unavailable or available responses)
+    if (stats && stats.guests.length > 0) {
       setSelectedDate(dateString);
     }
+  };
+
+  const getDateDisplayInfo = (dateString: string) => {
+    const stats = unavailabilityStats[dateString];
+    if (!stats) {
+      return { count: 0, unavailableCount: 0, availableCount: 0, hasResponses: false };
+    }
+
+    const unavailableCount = stats.guests.filter(g => g.selectionMode === "unavailable").length;
+    const availableCount = stats.guests.filter(g => g.selectionMode === "available").length;
+    const hasResponses = stats.guests.length > 0;
+    
+    return { 
+      count: stats.count, // This is the count of people who can't make it (unavailable)
+      unavailableCount, 
+      availableCount,
+      hasResponses
+    };
   };
 
   return (
@@ -93,9 +113,8 @@ export function AvailabilityCalendar({
             
             const isWeekendDay = isWeekend(year, month, day);
             const dateString = formatDate(year, month, day);
-            const stats = unavailabilityStats[dateString];
+            const { count, unavailableCount, availableCount, hasResponses } = getDateDisplayInfo(dateString);
             const isAdminDisabled = disabledDates.includes(dateString);
-            const unavailableCount = stats?.count || 0;
             
             let buttonClasses = "h-12 w-full rounded text-xs font-medium transition-colors relative ";
             
@@ -104,10 +123,15 @@ export function AvailabilityCalendar({
             } else if (isAdminDisabled) {
               buttonClasses += "cursor-not-allowed text-gray-400 bg-gray-200 opacity-50 line-through";
             } else {
-              if (unavailableCount > 0) {
+              if (count > 0) {
+                // Red for days with people who can't make it
                 buttonClasses += "cursor-pointer bg-red-100 text-red-800 hover:bg-red-200 border border-red-300";
+              } else if (hasResponses) {
+                // Green for days with responses but no unavailable people
+                buttonClasses += "cursor-pointer bg-green-100 text-green-800 hover:bg-green-200 border border-green-300";
               } else {
-                buttonClasses += "bg-green-100 text-green-800 border border-green-300";
+                // Gray for days with no responses yet
+                buttonClasses += "cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300";
               }
             }
             
@@ -120,17 +144,25 @@ export function AvailabilityCalendar({
                 title={
                   isAdminDisabled 
                     ? "This date has been disabled" 
-                    : unavailableCount > 0 
-                      ? `${unavailableCount} guest${unavailableCount > 1 ? 's' : ''} unavailable - click to see details`
-                      : "All guests available"
+                    : count > 0
+                      ? `${count} can't make it${availableCount > 0 ? `, ${availableCount} available` : ''} - click to see details`
+                      : hasResponses
+                        ? `${availableCount} available - click to see details`
+                        : "No responses yet"
                 }
               >
                 <div className="flex flex-col items-center justify-center h-full">
                   <span className="text-sm">{day}</span>
-                  {unavailableCount > 0 && (
-                    <span className="text-xs font-bold text-red-600">
-                      -{unavailableCount}
-                    </span>
+                  {isWeekendDay && !isAdminDisabled && (
+                    <div className="text-xs font-bold">
+                      {count > 0 ? (
+                        <span className="text-red-600">-{count}</span>
+                      ) : hasResponses ? (
+                        <span className="text-green-600">✓</span>
+                      ) : (
+                        <span className="text-gray-400">?</span>
+                      )}
+                    </div>
                   )}
                 </div>
               </button>

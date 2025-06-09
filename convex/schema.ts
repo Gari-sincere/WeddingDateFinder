@@ -8,6 +8,7 @@ const applicationTables = {
     guestLastName: v.string(),
     date: v.string(), // YYYY-MM-DD format
     month: v.string(), // YYYY-MM format for easier querying
+    selectionMode: v.optional(v.union(v.literal("unavailable"), v.literal("available"))), // Track how the selection was made
   }).index("by_guest", ["guestFirstName", "guestLastName"])
     .index("by_date", ["date"])
     .index("by_month", ["month"]),

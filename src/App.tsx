@@ -55,11 +55,17 @@ export default function App() {
       return;
     }
 
+    if (!selectionMode) {
+      setShowSelectionModeModal(true);
+      return;
+    }
+
     try {
       await toggleDate({
         firstName,
         lastName,
         date,
+        selectionMode,
       });
     } catch (error) {
       toast.error("Failed to update date");
@@ -74,7 +80,7 @@ export default function App() {
 
     try {
       await submitResponse({ firstName, lastName });
-      toast.success("Thank you! Your response has been recorded.");
+      toast.success("Submitted 😊 Thank you");
     } catch (error) {
       toast.error("Failed to submit response");
     }
@@ -116,7 +122,7 @@ export default function App() {
       if (confirm("Changing selection mode will clear all your current selections. Are you sure you want to continue?")) {
         // Clear all selections by toggling each selected date
         unavailableDates.forEach(async (date) => {
-          await toggleDate({ firstName, lastName, date });
+          await toggleDate({ firstName, lastName, date, selectionMode });
         });
         setSelectionMode(newMode);
       }
@@ -135,7 +141,6 @@ export default function App() {
   };
 
   const months = [
-    { name: "August 2025", year: 2025, month: 7 },
     { name: "September 2025", year: 2025, month: 8 },
     { name: "October 2025", year: 2025, month: 9 },
     { name: "November 2025", year: 2025, month: 10 },
@@ -150,16 +155,23 @@ export default function App() {
           {/* Welcome Page */}
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-purple-800 mb-6">
-              💕 Wedding Date Selection 💕
+              💕 Wedding Date Finder 💕
             </h1>
             
             <div className="bg-white rounded-lg shadow-lg p-8 text-left mb-8">
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                Alicia and I are super excited for you to join us in celebrating our wedding 😁 
-                and since we would love to set the date in the not so distant future 🤞🤞 we are 
-                reaching out to our guest list early to help us pick the best day. We so appreciate 
-                you taking the few minutes to let us know what days work best for you.
-              </p>
+              <div className="flex flex-col md:flex-row gap-8 items-center">
+                <img 
+                  src="https://utfs.io/f/rd0D2eyhq7vaQbTceEnZrcVtgL21HQY6dCGfm7kBubnSlDse"
+                  alt="Wedding celebration"
+                  className="max-w-xs w-full h-auto rounded-lg flex-shrink-0"
+                />
+                <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                Welcome to our wedding page 👰‍♀️🤵‍♂️💍<br/><br/>
+                We couldn't be more excited to celebrate our big day with you 😁🎉<br/><br/>
+                Since we're hoping to tie the knot soon-ish 🤞 Garison made this little tool to help us pick a day with confidence: knowing all our loved ones will be able to be there.<br/><br/>
+                But we need your help to make that happen! Thanks for taking a few minutes to let us know what works for you 💕
+                </p>
+              </div>
             </div>
 
             <button
@@ -215,7 +227,7 @@ export default function App() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-purple-800 mb-6">
-            💕 Wedding Date Selection 💕
+            💕 Wedding Date Finder 💕
           </h1>
           
           <div className="bg-white rounded-lg shadow-lg p-8 text-left max-w-4xl mx-auto">
